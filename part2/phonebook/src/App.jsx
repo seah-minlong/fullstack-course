@@ -3,6 +3,7 @@ import axios from 'axios';
 import Filter from "./Filter.jsx";
 import PersonForm from "./PersonForm.jsx";
 import Persons from "./Persons.jsx";
+import personService from './services/persons.js'
 
 const App = () => {
 	const [persons, setPersons] = useState([]);
@@ -14,28 +15,65 @@ const App = () => {
         event.preventDefault();
 
         const isDuplicate = persons.some(p => p.name === newName);
-        if (isDuplicate) {
+        if (isDuplicate & newNumber === "") {
             alert(`${newName} is already added to phonebook`);
-        } else {
-            const personObject = {
-                name: newName,
-                number: newNumber,
-                id: String(persons.length + 1),
-            };
-            setPersons(persons.concat(personObject));
+            return;
+        } else if (isDuplicate) {
+            // New number added but duplicate name
+            const confirmed = confirm(`${newName} is already added to phonebook, replace old number with a new one?`)
+            if (confirmed) {
+                const person = persons.find(p => p.name === newName)
+                updateNumber(person, newNumber);
+
+                setNewName("");
+                setNewNumber("");
+                return
+            }
         }
+
+        const personObject = {
+            name: newName,
+            number: newNumber,
+            id: String(persons.length + 1),
+        };
+
+        personService  
+            .create(personObject)
+            .then(returnedPerson => {
+                setPersons(persons.concat(returnedPerson));
+            })
 
         setNewName("");
         setNewNumber("");
     };
 
     useEffect(() => {
-        axios
-            .get('http://localhost:3001/persons')
-            .then(response => {
-                setPersons(response.data)
+        personService
+            .getAll()
+            .then(personsData => {
+                setPersons(personsData)
             })
     })
+
+    const deletePerson = person => {
+        personService
+            .delPerson(person)
+            .then(deletedPerson => {
+                console.log(`deleted ${person.name} succesfully`)
+                setPersons(persons.filter(person => person.id !== deletedPerson.id))
+            })
+    }
+
+    const updateNumber = (person, newNumber) => {
+        console.log(person)
+        const changedPerson = { ...person, number: newNumber }
+
+        personService
+            .update(person.id, changedPerson)
+            .then(returnedPerson => {
+                setPersons(persons.map(p => p.id === person.id ? returnedPerson : p));
+            })
+    }
 
 	const handleNameChange = (event) => {
 		setNewName(event.target.value);
@@ -69,7 +107,7 @@ const App = () => {
 			
 			<h2>Numbers</h2>
 
-			<Persons personsToShow={personsToShow} />
+			<Persons personsToShow={personsToShow} deletePerson={deletePerson}/>
 		</div>
 	);
 };
