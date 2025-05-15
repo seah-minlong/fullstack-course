@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import axios from 'axios';
 import Filter from "./Filter.jsx";
 import PersonForm from "./PersonForm.jsx";
 import Persons from "./Persons.jsx";
 import personService from './services/persons.js'
+import Notification from './Notification.jsx'
 
 const App = () => {
 	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
     const [newNumber, setNewNumber] = useState("");
     const [newFilter, setNewFilter] = useState("");
+    const [notification, setNotification] = useState(null)
 
     const addPerson = (event) => {
         event.preventDefault();
@@ -42,6 +43,11 @@ const App = () => {
             .then(returnedPerson => {
                 setPersons(persons.concat(returnedPerson));
             })
+        
+        setNotification(`Added ${personObject.name}`)
+        setTimeout(() => {
+            setNotification(null)
+        }, 2000)
 
         setNewName("");
         setNewNumber("");
@@ -73,6 +79,15 @@ const App = () => {
             .then(returnedPerson => {
                 setPersons(persons.map(p => p.id === person.id ? returnedPerson : p));
             })
+            .catch(error => {
+                setErrorMessage(
+                    `Person '${person.content}' was already removed from server`
+                )
+                setTimeout(() => {
+                    setErrorMessage(null)
+                }, 5000)
+                setPersons(persons.filter(p => p.id !== person.id))
+            })
     }
 
 	const handleNameChange = (event) => {
@@ -92,7 +107,7 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
-
+            <Notification message={notification}/>
             <Filter newFilter={newFilter} handleFilterChange={handleFilterChange} />
 
             <h3>add a new </h3>
