@@ -6,11 +6,13 @@ import personService from './services/persons.js'
 import Notification from './Notification.jsx'
 
 const App = () => {
+
+    const initialNotification = { message: '', isError: false }
 	const [persons, setPersons] = useState([]);
 	const [newName, setNewName] = useState("");
     const [newNumber, setNewNumber] = useState("");
     const [newFilter, setNewFilter] = useState("");
-    const [notification, setNotification] = useState(null)
+    const [notification, setNotification] = useState(initialNotification)
 
     const addPerson = (event) => {
         event.preventDefault();
@@ -44,9 +46,9 @@ const App = () => {
                 setPersons(persons.concat(returnedPerson));
             })
         
-        setNotification(`Added ${personObject.name}`)
+        setNotification({ message: `Added ${personObject.name}`, isError: false })
         setTimeout(() => {
-            setNotification(null)
+            setNotification(initialNotification)
         }, 2000)
 
         setNewName("");
@@ -59,7 +61,7 @@ const App = () => {
             .then(personsData => {
                 setPersons(personsData)
             })
-    })
+    }, [])
 
     const deletePerson = person => {
         personService
@@ -70,7 +72,7 @@ const App = () => {
             })
     }
 
-    const updateNumber = (person, newNumber) => {
+    const updateNumber = (person, newNumber) => { 
         console.log(person)
         const changedPerson = { ...person, number: newNumber }
 
@@ -80,12 +82,13 @@ const App = () => {
                 setPersons(persons.map(p => p.id === person.id ? returnedPerson : p));
             })
             .catch(error => {
-                setErrorMessage(
-                    `Person '${person.content}' was already removed from server`
-                )
+                console.log(error)
+                setNotification({ message: `Information about ${person.name} has already been removed from server`, isError: true })
+
                 setTimeout(() => {
-                    setErrorMessage(null)
-                }, 5000)
+                    setNotification(initialNotification)
+                }, 2000)
+
                 setPersons(persons.filter(p => p.id !== person.id))
             })
     }
@@ -107,7 +110,7 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
-            <Notification message={notification}/>
+            <Notification message={notification.message} isError={notification.isError}/>
             <Filter newFilter={newFilter} handleFilterChange={handleFilterChange} />
 
             <h3>add a new </h3>
