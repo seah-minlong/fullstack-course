@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import Search from "./Search.jsx";
-import countriesService from "./services/countries.js"
-import Countries from "./Countries.jsx"
+import countriesService from "./services/countries.js";
+import Countries from "./Countries.jsx";
+import Country from "./Country.jsx";
 
 const App = () => {
 
     const [newSearch, setNewSearch] = useState('');
     const [countries, setCountries] = useState([]);
+    const [selectedCountry, setSelectedCountry] = useState(null);
 
     const handleSearchChange = (event) => {
+        setSelectedCountry(null);
         setNewSearch(event.target.value);
     }
-    
+
     useEffect(() => {
         countriesService
             .getAll()
@@ -24,7 +27,11 @@ const App = () => {
     return (
         <div>
             <Search newSearch={newSearch} handleSearchChange={handleSearchChange} />
-            <Countries countries={countries} search={newSearch} />
+            {selectedCountry ? (
+                <Country country={selectedCountry} />
+            ) : (
+                <Countries countries={countries} search={newSearch} showCountry={setSelectedCountry}/>
+            )}
         </div>
     );
 };
