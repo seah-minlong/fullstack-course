@@ -67,8 +67,8 @@ const App = () => {
         personService
             .delPerson(person)
             .then(deletedPerson => {
-                console.log(`deleted ${person.name} succesfully`)
-                setPersons(persons.filter(person => person.id !== deletedPerson.id))
+                console.log(`deleted ${deletedPerson.name} succesfully`)
+                setPersons(persons.filter(p => p.id !== deletedPerson.id))
             })
     }
 
@@ -79,6 +79,7 @@ const App = () => {
         personService
             .update(person.id, changedPerson)
             .then(returnedPerson => {
+				console.log(`updated ${returnedPerson.name} successfully`)
                 setPersons(persons.map(p => p.id === person.id ? returnedPerson : p));
             })
             .catch(error => {
