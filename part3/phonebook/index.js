@@ -1,7 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
-const cors = require("cors");
 
 morgan.token('content', function (req) {
 	return JSON.stringify(req.body);
@@ -11,7 +10,7 @@ app.use(express.json());
 app.use(
 	morgan(":method :url :status :res[content-length] - :response-time ms :content")
 );
-app.use(cors());
+app.use(express.static("dist"));
 
 let persons = [
 	{
@@ -66,7 +65,7 @@ app.delete("/api/persons/:id", (request, response) => {
 	const id = request.params.id;
 	const person = persons.find((person) => person.id === id);
 	persons = persons.filter((person) => person.id !== id);
-	
+
 	console.log(person);
 	if (!person) {
 		response.status(404).end();
