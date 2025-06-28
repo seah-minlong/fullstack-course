@@ -44,9 +44,13 @@ const App = () => {
             .create(personObject)
             .then(returnedPerson => {
                 setPersons(persons.concat(returnedPerson));
+
+				setNotification({ message: `Added ${personObject.name}`, isError: false })
             })
+			.catch(error => {
+				setNotification({ message: error.response.data.error , isError: true })
+			})
         
-        setNotification({ message: `Added ${personObject.name}`, isError: false })
         setTimeout(() => {
             setNotification(initialNotification)
         }, 2000)
@@ -68,7 +72,7 @@ const App = () => {
             .delPerson(person)
             .then(deletedPerson => {
                 console.log(`deleted ${deletedPerson.name} succesfully`)
-                setPersons(persons.filter(p => p.id !== deletedPerson.id))
+                setPersons(persons.filter(p => p.id !== person.id))
             })
     }
 
