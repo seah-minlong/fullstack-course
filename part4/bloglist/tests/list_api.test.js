@@ -11,12 +11,7 @@ const api = supertest(app);
 
 beforeEach(async () => {
 	await Blog.deleteMany({});
-
-	let blogObject = new Blog(helper.initialBlog[0]);
-	await blogObject.save();
-
-	blogObject = new Blog(helper.initialBlog[1]);
-	await blogObject.save();
+	await Blog.insertMany(helper.initialBlog);
 });
 
 test("blogs are returned as json", async () => {
@@ -123,6 +118,38 @@ test("Missing url Blog not added", async () => {
 	const blogAtEnd = await helper.blogsInDb();
 
 	assert.strictEqual(blogAtEnd.length, helper.initialBlog.length);
+});
+
+test("Delete single blog post", async () => {
+	const initialBlog = await helper.blogsInDb();
+	const blogToDelete = initialBlog[0];
+
+	await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+
+	const blogsAtEnd = await helper.blogsInDb();
+
+	const titles = blogsAtEnd.map(b => b.title);
+	assert(!titles.includes(blogToDelete.title));
+
+	assert.strictEqual(blogsAtEnd.length, helper.initialBlog.length - 1);
+});
+
+test("Update likes of single blog post", async () => {
+	const initialBlog = await helper.blogsInDb();
+	let blogToUpdate = initialBlog[0];
+
+	const updatedLikes = blogToUpdate.likes + 1;
+	
+	await api
+		.put(`/api/blogs/${blogToUpdate.id}`)
+		.send({ likes: updatedLikes })
+		.expect(200)
+		.expect("Content-Type", /application\/json/);
+
+	const blogsAtEnd = await helper.blogsInDb();
+	const updatedBlog = blogsAtEnd.find(b => b.id === blogToUpdate.id);
+
+	assert.strictEqual(updatedBlog.likes, updatedLikes);
 });
 
 after(async () => {

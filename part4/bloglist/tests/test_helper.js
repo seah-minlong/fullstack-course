@@ -1,7 +1,7 @@
-const Blog = require('../models/bloglist')
+const Blog = require("../models/bloglist");
 
 const initialBlog = [
-    {
+	{
 		_id: "5a422a851b54a676234d17f7",
 		title: "React patterns",
 		author: "Michael Chan",
@@ -16,14 +16,15 @@ const initialBlog = [
 		url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
 		likes: 5,
 		__v: 0,
-	},
-]
+	}
+];
 
 const blogsInDb = async () => {
-    const blogs = await Blog.find({})
-    return blogs.map(blog => blog.toJSON())
-}
+	const blogs = await Blog.find({});
+	return blogs.map((blog) => blog.toJSON());
+};
 
 module.exports = {
-    initialBlog, blogsInDb
-}
+	initialBlog,
+	blogsInDb,
+};
