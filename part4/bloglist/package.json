@@ -3,16 +3,20 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"scripts": {
-		"start": "node index.js",
-		"test": "node --test",
-		"dev": "node --watch index.js"
+		"start": "cross-env NODE_ENV=production node index.js",
+		"dev": "cross-env NODE_ENV=development node --watch index.js",
+		"test": "cross-env  NODE_ENV=test node --test"
 	},
 	"author": "",
 	"license": "ISC",
 	"description": "",
 	"dependencies": {
+		"cross-env": "^7.0.3",
 		"dotenv": "^16.5.0",
 		"express": "^5.1.0",
 		"mongoose": "^8.16.0"
+	},
+	"devDependencies": {
+		"supertest": "^7.1.3"
 	}
 }
