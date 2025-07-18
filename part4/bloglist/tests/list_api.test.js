@@ -11,11 +11,18 @@ const User = require("../models/user");
 
 const api = supertest(app);
 
+let token;
+let testUserId;
+
 before(async () => {
 	await User.deleteMany({});
+	await Blog.deleteMany({});
+
 	const passwordHash = await bcrypt.hash("sekret", 10);
 	const user = new User({ username: "root", passwordHash });
 	await user.save();
+
+	testUserId = user._id;
 
 	const response = await api
 		.post("/api/login")
@@ -25,7 +32,12 @@ before(async () => {
 
 beforeEach(async () => {
 	await Blog.deleteMany({});
-	await Blog.insertMany(helper.initialBlog);
+	const blogsWithUser = helper.initialBlog.map((blog) => ({
+		...blog,
+		user: testUserId,
+	}));
+
+	await Blog.insertMany(blogsWithUser);
 });
 
 test("blogs are returned as json", async () => {
@@ -57,7 +69,7 @@ test("a specific blog can be viewed", async () => {
 		.expect(200)
 		.expect("Content-Type", /application\/json/);
 
-	assert.deepStrictEqual(resultBlog.body, blogToView);
+	assert.strictEqual(resultBlog.body.id, blogToView.id);
 });
 
 test("a valid blog can be added", async () => {
@@ -79,11 +91,30 @@ test("a valid blog can be added", async () => {
 
 	const blogAtEnd = await helper.blogsInDb();
 
-	const response = await api.get("/api/blogs");
-	assert.strictEqual(response.body.length, helper.initialBlog.length + 1);
+	assert.strictEqual(blogAtEnd.length, helper.initialBlog.length + 1);
 
 	const titles = blogAtEnd.map((b) => b.title);
 	assert(titles.includes("Test"));
+});
+
+test("401 Unauthorized if blog added without token", async () => {
+	const newBlog = {
+		_id: "5a422b3a1b54a676234d17f9",
+		title: "Test",
+		author: "Edsger W. Dijkstra",
+		url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
+		likes: 12,
+		__v: 0,
+	};
+
+	await api
+		.post("/api/blogs")
+		.send(newBlog)
+		.expect(401);
+
+	const blogAtEnd = await helper.blogsInDb();
+
+	assert.strictEqual(blogAtEnd.length, helper.initialBlog.length);
 });
 
 test("default 0 for missing likes property", async () => {
@@ -144,7 +175,10 @@ test("Delete single blog post", async () => {
 	const initialBlog = await helper.blogsInDb();
 	const blogToDelete = initialBlog[0];
 
-	await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+	await api
+		.delete(`/api/blogs/${blogToDelete.id}`)
+		.set("Authorization", `Bearer ${token}`)
+		.expect(204);
 
 	const blogsAtEnd = await helper.blogsInDb();
 
