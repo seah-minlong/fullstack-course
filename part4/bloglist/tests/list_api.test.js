@@ -13,11 +13,14 @@ const api = supertest(app);
 
 before(async () => {
 	await User.deleteMany({});
-
 	const passwordHash = await bcrypt.hash("sekret", 10);
 	const user = new User({ username: "root", passwordHash });
-
 	await user.save();
+
+	const response = await api
+		.post("/api/login")
+		.send({ username: "root", password: "sekret" });
+	token = response.body.token;
 });
 
 beforeEach(async () => {
@@ -69,6 +72,7 @@ test("a valid blog can be added", async () => {
 
 	await api
 		.post("/api/blogs")
+		.set("Authorization", `Bearer ${token}`)
 		.send(newBlog)
 		.expect(201)
 		.expect("Content-Type", /application\/json/);
@@ -91,6 +95,7 @@ test("default 0 for missing likes property", async () => {
 
 	await api
 		.post("/api/blogs")
+		.set("Authorization", `Bearer ${token}`)
 		.send(newBlog)
 		.expect(201)
 		.expect("Content-Type", /application\/json/);
@@ -107,7 +112,11 @@ test("Missing title Blog not added", async () => {
 		url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
 	};
 
-	await api.post("/api/blogs").send(missingTitleBlog).expect(400);
+	await api
+		.post("/api/blogs")
+		.set("Authorization", `Bearer ${token}`)
+		.send(missingTitleBlog)
+		.expect(400);
 
 	const blogAtEnd = await helper.blogsInDb();
 
@@ -120,7 +129,11 @@ test("Missing url Blog not added", async () => {
 		title: "Test",
 	};
 
-	await api.post("/api/blogs").send(missingUrlBlog).expect(400);
+	await api
+		.post("/api/blogs")
+		.set("Authorization", `Bearer ${token}`)
+		.send(missingUrlBlog)
+		.expect(400);
 
 	const blogAtEnd = await helper.blogsInDb();
 
