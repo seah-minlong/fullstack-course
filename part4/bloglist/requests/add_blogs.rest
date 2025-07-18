@@ -1,11 +1,11 @@
-GET http://localhost:3003/api/blogs
+GET http://localhost:3001/api/blogs
 
 ###
-POST http://localhost:3003/api/blogs
+POST http://localhost:3001/api/blogs
 Content-Type: application/json
 
 {
-	"title": "Test4",
+	"title": "Test 2",
 	"author": "Teo En Ming",
 	"url": "wordpress",
 	"likes": 2

@@ -1,4 +1,5 @@
-const { test, after, beforeEach } = require("node:test");
+const bcrypt = require("bcrypt");
+const { test, after, beforeEach, before } = require("node:test");
 const assert = require("node:assert");
 
 const mongoose = require("mongoose");
@@ -6,8 +7,18 @@ const supertest = require("supertest");
 const app = require("../app");
 const helper = require("./test_helper");
 const Blog = require("../models/bloglist");
+const User = require("../models/user");
 
 const api = supertest(app);
+
+before(async () => {
+	await User.deleteMany({});
+
+	const passwordHash = await bcrypt.hash("sekret", 10);
+	const user = new User({ username: "root", passwordHash });
+
+	await user.save();
+});
 
 beforeEach(async () => {
 	await Blog.deleteMany({});
@@ -73,11 +84,9 @@ test("a valid blog can be added", async () => {
 
 test("default 0 for missing likes property", async () => {
 	const newBlog = {
-		_id: "5a422b3a1b54a676234d17f9",
 		title: "Canonical string reduction",
 		author: "Edsger W. Dijkstra",
 		url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
-		__v: 0,
 	};
 
 	await api
@@ -86,12 +95,10 @@ test("default 0 for missing likes property", async () => {
 		.expect(201)
 		.expect("Content-Type", /application\/json/);
 
-	const response = await api
-		.get(`/api/blogs/${newBlog._id}`)
-		.expect(200)
-		.expect("Content-Type", /application\/json/);
+	const blogsAtEnd = await helper.blogsInDb();
+	const addedBlog = blogsAtEnd.find((b) => b.title === newBlog.title);
 
-	assert.strictEqual(response.body.likes, 0);
+	assert.strictEqual(addedBlog.likes, 0);
 });
 
 test("Missing title Blog not added", async () => {
@@ -128,7 +135,7 @@ test("Delete single blog post", async () => {
 
 	const blogsAtEnd = await helper.blogsInDb();
 
-	const titles = blogsAtEnd.map(b => b.title);
+	const titles = blogsAtEnd.map((b) => b.title);
 	assert(!titles.includes(blogToDelete.title));
 
 	assert.strictEqual(blogsAtEnd.length, helper.initialBlog.length - 1);
@@ -139,7 +146,7 @@ test("Update likes of single blog post", async () => {
 	let blogToUpdate = initialBlog[0];
 
 	const updatedLikes = blogToUpdate.likes + 1;
-	
+
 	await api
 		.put(`/api/blogs/${blogToUpdate.id}`)
 		.send({ likes: updatedLikes })
@@ -147,7 +154,7 @@ test("Update likes of single blog post", async () => {
 		.expect("Content-Type", /application\/json/);
 
 	const blogsAtEnd = await helper.blogsInDb();
-	const updatedBlog = blogsAtEnd.find(b => b.id === blogToUpdate.id);
+	const updatedBlog = blogsAtEnd.find((b) => b.id === blogToUpdate.id);
 
 	assert.strictEqual(updatedBlog.likes, updatedLikes);
 });

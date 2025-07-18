@@ -70,7 +70,7 @@ describe("when there is initially one user in db", () => {
 		const newUser = {
 			username: "A",
 			name: "Teo En Ming",
-			password: "Teo En Ming"
+			password: "Teo En Ming",
 		};
 
 		const result = await api
@@ -83,7 +83,7 @@ describe("when there is initially one user in db", () => {
 		assert(result.body.error.includes("at least 3 characters"));
 
 		assert.strictEqual(usersAtEnd.length, usersAtStart.length);
-	})
+	});
 
 	test("creation fails when password less than 3 characters", async () => {
 		const usersAtStart = await helper.usersInDb();
