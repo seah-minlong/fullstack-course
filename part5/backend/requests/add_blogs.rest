@@ -1,0 +1,21 @@
+GET http://localhost:3001/api/blogs
+
+###
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjY4NzllOWUwNjNlMjIwYWEwYmRmNmQwNCIsImlhdCI6MTc1MjgyODAxMX0.GImSpUE54RM7nqIcVyaZn7-0QlCKpYjus1olyjLdJHQ
+
+{
+	"title": "Try Delete",
+	"author": "Teo En Ming",
+	"url": "wordpress",
+	"likes": 2
+}
+
+### Valid User try delete
+DELETE http://localhost:3001/api/blogs/687a1c63d1a99a9cf68f7ff7
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjY4NzllOWUwNjNlMjIwYWEwYmRmNmQwNCIsImlhdCI6MTc1MjgyODAxMX0.GImSpUE54RM7nqIcVyaZn7-0QlCKpYjus1olyjLdJHQ
+
+### Invalid User try delete
+DELETE http://localhost:3001/api/blogs/687a1c63d1a99a9cf68f7ff7
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik5vQmxvZ3MiLCJpZCI6IjY4N2EwZjQwMmYyNzRiYmYwODUwYzA0NiIsImlhdCI6MTc1MjgyOTgyMSwiZXhwIjoxNzUyODMzNDIxfQ.YmC0xnHRwvl_dr11FCHq-sBAQNG7tTR7fQpBkocvrq0

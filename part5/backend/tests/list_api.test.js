@@ -21,7 +21,8 @@ before(async () => {
 	const passwordHash = await bcrypt.hash("sekret", 10);
 	const user = new User({ username: "root", passwordHash });
 	await user.save();
-	testUserId = user.id;
+
+	testUserId = user._id;
 
 	const response = await api
 		.post("/api/login")
@@ -73,10 +74,12 @@ test("a specific blog can be viewed", async () => {
 
 test("a valid blog can be added", async () => {
 	const newBlog = {
+		_id: "5a422b3a1b54a676234d17f9",
 		title: "Test",
 		author: "Edsger W. Dijkstra",
 		url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
 		likes: 12,
+		__v: 0,
 	};
 
 	await api
