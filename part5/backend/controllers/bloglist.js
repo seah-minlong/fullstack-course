@@ -16,7 +16,7 @@ bloglistRouter.post("/", userExtractor, async (request, response) => {
 
 	const blog = new Blog({
 		title: body.title,
-		author: user._id,
+		author: body.author,
 		url: body.url,
 		likes: body.likes,
 		user: user._id,
@@ -42,24 +42,28 @@ bloglistRouter.get(`/:id`, async (request, response, next) => {
 	}
 });
 
-bloglistRouter.delete("/:id", userExtractor, async (request, response, next) => {
-	try {
-		const blog = await Blog.findById(request.params.id);
-		if (!blog) {
-			response.status(404).end();
-		}
+bloglistRouter.delete(
+	"/:id",
+	userExtractor,
+	async (request, response, next) => {
+		try {
+			const blog = await Blog.findById(request.params.id);
+			if (!blog) {
+				response.status(404).end();
+			}
 
-		const userId = request.user.id;
-		if (blog.user.toString() === userId.toString()) {
-			await Blog.findByIdAndDelete(request.params.id);
-			response.status(204).end();
-		} else {
-			response.status(401).json({ error: "Invalid user" });
+			const userId = request.user.id;
+			if (blog.user.toString() === userId.toString()) {
+				await Blog.findByIdAndDelete(request.params.id);
+				response.status(204).end();
+			} else {
+				response.status(401).json({ error: "Invalid user" });
+			}
+		} catch (exception) {
+			next(exception);
 		}
-	} catch (exception) {
-		next(exception);
 	}
-});
+);
 
 bloglistRouter.put("/:id", async (request, response, next) => {
 	try {
