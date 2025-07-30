@@ -16,7 +16,7 @@ bloglistRouter.post("/", userExtractor, async (request, response) => {
 
 	const blog = new Blog({
 		title: body.title,
-		author: user._id,
+		author: body.author,
 		url: body.url,
 		likes: body.likes,
 		user: user._id,
