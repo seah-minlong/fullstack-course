@@ -3,8 +3,13 @@ import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import BlogForm from './BlogForm'
+import Notification from './components/Notification'
 
 const App = () => {
+
+	const initialNotification = { message: '', isError: false }
+	const [notification, setNotification] = useState(initialNotification)
+
 	const [blogs, setBlogs] = useState([])
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
@@ -34,7 +39,7 @@ const App = () => {
 
 		const BlogObject = {
 			title: newTitle,
-			author: newAuthor, 
+			author: newAuthor,
 			url: newUrl,
 			id: String(blogs.length + 1)
 		}
@@ -43,16 +48,18 @@ const App = () => {
 			const returnedBlog = await blogService.create(BlogObject)
 
 			setBlogs(blogs.concat(returnedBlog))
-
-			setNewAuthor("")
-			setNewTitle("")
-			setNewUrl("")
+			setNotification({ message: `A new blog ${returnedBlog.title} by ${returnedBlog.author} added`, isError: false })
 		} catch (exception) {
-			setErrorMessage('Error adding blog')
-			setTimeout(() => {
-				setErrorMessage(null)
-			}, 5000)
+			setNotification({ message: `Error adding blog`, isError: true })
 		}
+
+		setTimeout(() => {
+			setNotification(initialNotification)
+		}, 2000)
+
+		setNewAuthor("")
+		setNewTitle("")
+		setNewUrl("")
 	}
 
 	const handleLogout = (event) => {
@@ -77,11 +84,12 @@ const App = () => {
 			setUser(user)
 			setUsername('')
 			setPassword('')
+
 		} catch (exception) {
-			setErrorMessage('Wrong credentials')
+			setNotification({ message: 'Wrong username or password', isError: true })
 			setTimeout(() => {
-				setErrorMessage(null)
-			}, 5000)
+				setNotification(initialNotification)
+			}, 2000)
 		}
 	}
 
@@ -101,6 +109,7 @@ const App = () => {
 		return (
 			<div>
 				<h2>Log in to application</h2>
+				<Notification message={notification.message} isError={notification.isError} />
 				<form onSubmit={handleLogin}>
 					<div>
 						username
@@ -130,6 +139,7 @@ const App = () => {
 		<div>
 			<div>
 				<h2>blogs</h2>
+				<Notification message={notification.message} isError={notification.isError} />
 				<span>
 					{user.username} logged in
 				</span>
