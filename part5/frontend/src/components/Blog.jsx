@@ -20,8 +20,12 @@ const Blog = ({ blog, updateBlog, deleteBlog }) => {
 
 	const handleDelete = (event) => {
 		event.preventDefault()
-		window.confirm(`Remove ${blog.title} by ${blog.author}`)
-		deleteBlog(blog)
+		
+		const confirmDelete = window.confirm(`Remove ${blog.title} by ${blog.author}`)
+		
+		if (confirmDelete) {
+			deleteBlog(blog)
+		}
 	}
 
 	const blogStyle = {
