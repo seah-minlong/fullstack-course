@@ -55,11 +55,25 @@ const App = () => {
 		try {
 			const returnedBlog = await blogService.update(blogObject.id, blogObject)
 
-			setBlogs(blogs.map(blog => 
+			setBlogs(blogs.map(blog =>
 				blog.id === returnedBlog.id ? returnedBlog : blog
 			))
 		} catch (exception) {
-			setNotification({ message: `Error updating blog`, isError: true })
+			setNotification({ message: `Error updating blog: ${exception}`, isError: true })
+		}
+
+		setTimeout(() => {
+			setNotification(initialNotification)
+		}, 2000)
+	}
+
+	const deleteBlog = async (blogObject) => {
+		try {
+			await blogService.deleteBlog(blogObject.id)
+			setBlogs(blogs.filter(blog => blog.id !== blogObject.id))
+			setNotification({ message: `Deleted ${blogObject.title} by ${blogObject.author}`, isError: false })
+		} catch (exception) {
+			setNotification({ message: `Error deleting blog: ${exception}`, isError: true })
 		}
 
 		setTimeout(() => {
@@ -149,13 +163,16 @@ const App = () => {
 					/>
 				</Togglable>
 
-				{blogs.map(blog =>
-					<Blog 
-						key={blog.id} 
-						blog={blog}
-						updateBlog={updateBlog}
-					/>
-				)}
+				{blogs
+					.sort((a, b) => b.likes - a.likes)	
+					.map(blog =>
+						<Blog
+							key={blog.id}
+							blog={blog}
+							updateBlog={updateBlog}
+							deleteBlog={deleteBlog}
+						/>
+					)}
 			</div>
 		</div>
 	)
