@@ -4,7 +4,7 @@ const { userExtractor } = require("../utils/middleware");
 
 bloglistRouter.get("/", async (request, response) => {
 	const blogs = await Blog.find({}).populate("user", {
-		username: 1,
+		username: 1, // 1 means include this field
 		name: 1,
 	});
 	response.json(blogs);
@@ -69,7 +69,11 @@ bloglistRouter.put("/:id", async (request, response, next) => {
 	try {
 		const { likes } = request.body;
 
-		const blog = await Blog.findById(request.params.id);
+		const blog = await Blog.findById(request.params.id).populate("user", {
+			username: 1, // 1 means include this field
+			name: 1,
+		});
+
 		if (blog) {
 			blog.likes = likes;
 
