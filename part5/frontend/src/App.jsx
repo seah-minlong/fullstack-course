@@ -43,7 +43,7 @@ const App = () => {
 			setBlogs(blogs.concat(returnedBlog))
 			setNotification({ message: `A new blog ${returnedBlog.title} by ${returnedBlog.author} added`, isError: false })
 		} catch (exception) {
-			setNotification({ message: `Error adding blog`, isError: true })
+			setNotification({ message: `Error adding blog: ${exception}`, isError: true })
 		}
 
 		setTimeout(() => {
