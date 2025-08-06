@@ -1,10 +1,12 @@
 import { useState } from 'react'
 
-const Blog = ({ blog, updateBlog, deleteBlog }) => {
+const Blog = ({ blog, updateBlog, deleteBlog, user }) => {
 	const [visible, setVisible] = useState(false)
 	
 	const hideWhenVisible = { display: visible ? 'none' : '' }
 	const showWhenVisible = { display: visible ? '' : 'none' }
+
+	const isCreator = user && blog.user && user.username === blog.user.username
 
 	const toggleVisibility = () => {
 		setVisible(!visible)
@@ -48,12 +50,15 @@ const Blog = ({ blog, updateBlog, deleteBlog }) => {
 
 			<div style={showWhenVisible} className="togglableContent">
 				<div>{blog.url}</div>
-				<div>
+				<div id='likes'>
 					likes {blog.likes}
 					<button onClick={handleUpdateBlog}>like</button>
 				</div>
 				<div>{blog.user.username}</div>
-				<button onClick={handleDelete}>remove</button>
+
+				{isCreator && (
+					<button onClick={handleDelete}>remove</button>
+				)}
 			</div>
 		</div>
 )}
