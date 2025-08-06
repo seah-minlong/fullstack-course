@@ -4,6 +4,7 @@ import Blog from './Blog'
 
 describe('<Blog />', () => {
 	let container
+	let mockHandler
 
 	beforeEach(() => {
 		const blog = {
@@ -17,6 +18,8 @@ describe('<Blog />', () => {
 			}
 		}
 
+		mockHandler = vi.fn()
+		
 		// render() returns an object w multiple properties:
 		// {
 		//   container: <div>...</div>,
@@ -26,7 +29,7 @@ describe('<Blog />', () => {
 		//   // ... many other testing utilities
 		// }
 		// Need destructure, or use .container to get the container properties
-		container = render(<Blog blog={blog} />).container
+		container = render(<Blog blog={blog} updateBlog={mockHandler}/>).container
 	})
 
 	test('renders title and author', () => {
@@ -47,5 +50,14 @@ describe('<Blog />', () => {
 
 		const div = container.querySelector('.togglableContent')
 		expect(div).not.toHaveStyle('display: none')
+	})
+
+	test('like button is only clicked twice', async () => {
+		const user = userEvent.setup()
+		const button = screen.getByText('like')
+		await user.click(button)
+		await user.click(button)
+
+		expect(mockHandler.mock.calls).toHaveLength(2)
 	})
 })

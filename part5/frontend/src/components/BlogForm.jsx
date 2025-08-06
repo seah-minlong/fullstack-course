@@ -1,11 +1,11 @@
 import { useState } from 'react'
 
 const BlogForm = ({ addBlog }) => {
-	
+
 	const [newTitle, setNewTitle] = useState("");
 	const [newAuthor, setNewAuthor] = useState("");
 	const [newUrl, setNewUrl] = useState("");
-	
+
 	const handleSubmit = (event) => {
 		event.preventDefault()
 		addBlog({
@@ -24,9 +24,27 @@ const BlogForm = ({ addBlog }) => {
 			<h2>create new</h2>
 
 			<form onSubmit={handleSubmit}>
-				<div> title: <input value={newTitle} onChange={event => setNewTitle(event.target.value)} /></div>
-				<div> author: <input value={newAuthor} onChange={event => setNewAuthor(event.target.value)} /></div>
-				<div> url: <input value={newUrl} onChange={event => setNewUrl(event.target.value)} /></div>
+				<div> title:
+					<input
+						value={newTitle}
+						onChange={event => setNewTitle(event.target.value)}
+						placeholder='title'
+					/>
+				</div>
+				<div> author: 
+					<input 
+						value={newAuthor} 
+						onChange={event => setNewAuthor(event.target.value)} 
+						placeholder='author'
+					/>
+				</div>
+				<div> url: 
+					<input 
+						value={newUrl} 
+						onChange={event => setNewUrl(event.target.value)} 
+						placeholder='url'
+					/>
+				</div>
 				<div>
 					<button type="submit">add</button>
 				</div>
