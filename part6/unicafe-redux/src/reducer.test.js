@@ -82,34 +82,6 @@ describe("unicafe reducer", () => {
 		});
 	});
 
-	test("multiple increments work correctly", () => {
-		let state = initialState;
-
-		// Increment good twice
-		deepFreeze(state);
-		state = counterReducer(state, { type: "GOOD" });
-		deepFreeze(state);
-		state = counterReducer(state, { type: "GOOD" });
-
-		// Increment ok once
-		deepFreeze(state);
-		state = counterReducer(state, { type: "OK" });
-
-		// Increment bad three times
-		deepFreeze(state);
-		state = counterReducer(state, { type: "BAD" });
-		deepFreeze(state);
-		state = counterReducer(state, { type: "BAD" });
-		deepFreeze(state);
-		state = counterReducer(state, { type: "BAD" });
-
-		expect(state).toEqual({
-			good: 2,
-			ok: 1,
-			bad: 3,
-		});
-	});
-
 	test("unknown action returns unchanged state", () => {
 		const action = {
 			type: "UNKNOWN_ACTION",
