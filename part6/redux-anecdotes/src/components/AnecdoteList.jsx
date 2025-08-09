@@ -16,9 +16,15 @@ const AnecdoteList = () => {
 		return filteredAnecdotes.sort((a, b) => b.votes - a.votes)
 	})
 
-	const vote = (id) => {
-		dispatch(voteAnecdote(id))
-		dispatch(setNotification(`You voted '${anecdotes.find(a => a.id === id).content}'`))
+	const vote = async (id) => {
+		const anecdoteToChange = anecdotes.find((n) => n.id === id);
+		const changedAnecdote = {
+			...anecdoteToChange,
+			votes: anecdoteToChange.votes + 1,
+		};
+
+		dispatch(voteAnecdote(changedAnecdote))
+		dispatch(setNotification(`You voted '${changedAnecdote.content}'`))
 
 		setTimeout(() => {
 			dispatch(removeNotification())
