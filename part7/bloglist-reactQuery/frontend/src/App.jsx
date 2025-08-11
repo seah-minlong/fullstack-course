@@ -1,14 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import Blog from './components/Blog';
 import blogService from './services/blogs';
 import loginService from './services/login';
-import Notification from './components/Notification';
 import BlogForm from './components/BlogForm';
 import Togglable from './components/Togglable';
 
+import Notification from './components/Notification';
 import NotificationContext from './components/NotificationContext';
 
 import { useReducer } from 'react';
+
+const initialNotification = {
+    message: '',
+    isError: false,
+};
 
 const notificationReducer = (state, action) => {
     switch (action.type) {
@@ -23,32 +31,21 @@ const notificationReducer = (state, action) => {
                 isError: true,
             };
         default:
-            return {
-				message: '',
-				isError: false,
-			}
+            return initialNotification;
     }
 };
 
 const App = () => {
     const [notification, notificationDispatch] = useReducer(
         notificationReducer,
-        {
-            message: '',
-            isError: false,
-        }
+        initialNotification
     );
 
-    const [blogs, setBlogs] = useState([]);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [user, setUser] = useState(null);
 
     const blogFormRef = useRef();
-
-    useEffect(() => {
-        blogService.getAll().then(blogs => setBlogs(blogs));
-    }, []);
 
     useEffect(() => {
         const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser');
@@ -59,70 +56,106 @@ const App = () => {
         }
     }, []);
 
-    const addBlog = async blogObject => {
-        blogFormRef.current.toggleVisibility();
+    const queryClient = useQueryClient();
 
-        try {
-            const returnedBlog = await blogService.create(blogObject);
+    const updateBlogMutation = useMutation({
+        mutationFn: ({ id, newObject }) => blogService.update(id, newObject),
+        onSuccess: updatedBlog => {
+            const blogs = queryClient.getQueryData(['blogs']);
+            queryClient.setQueryData(
+                ['blogs'],
+                blogs.map(n => (n.id === updatedBlog.id ? updatedBlog : n))
+            );
+        },
+        onError: exception => {
+            notificationDispatch({
+                type: 'ERROR',
+                payload: `Error updating blog: ${exception.message}`,
+            });
+            setTimeout(() => {
+                notificationDispatch({ type: 'CLEAR' });
+            }, 2000);
+        },
+    });
 
-            setBlogs(blogs.concat(returnedBlog));
+    const newBlogMutation = useMutation({
+        mutationFn: blogService.create,
+        onSuccess: returnedBlog => {
+            queryClient.invalidateQueries({ queryKey: ['blogs'] });
+
             notificationDispatch({
                 type: 'SET',
                 payload: `A new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
             });
-        } catch (exception) {
+            setTimeout(() => {
+                notificationDispatch({ type: 'CLEAR' });
+            }, 2000);
+        },
+        onError: exception => {
             notificationDispatch({
                 type: 'ERROR',
-                payload: `Error adding blog: ${exception}`,
+                payload: `Error adding blog: ${exception.message}`,
             });
-        }
+            setTimeout(() => {
+                notificationDispatch({ type: 'CLEAR' });
+            }, 2000);
+        },
+    });
 
-        setTimeout(() => {
-            notificationDispatch({ type: 'CLEAR' });
-        }, 2000);
-    };
+    const deleteBlogMutation = useMutation({
+        mutationFn: blogService.deleteBlog,
+        onSuccess: id => {
+            const blogs = queryClient.getQueryData(['blogs']);
+            const blogObject = blogs.find(b => b.id === id);
 
-    const updateBlog = async blogObject => {
-        try {
-            const returnedBlog = await blogService.update(
-                blogObject.id,
-                blogObject
+            queryClient.setQueryData(
+                ['blogs'],
+                blogs.filter(blog => blog.id !== id)
             );
 
-            setBlogs(
-                blogs.map(blog =>
-                    blog.id === returnedBlog.id ? returnedBlog : blog
-                )
-            );
-        } catch (exception) {
+            notificationDispatch({
+                type: 'SET',
+                payload: `Deleted ${blogObject.title} by ${blogObject.author}`,
+            });
+            setTimeout(() => {
+                notificationDispatch({ type: 'CLEAR' });
+            }, 2000);
+        },
+        onError: exception => {
             notificationDispatch({
                 type: 'ERROR',
-                payload: `Error updating blog: ${exception}`,
+                payload: `Error deleting blog: ${exception.message}`,
             });
 			setTimeout(() => {
                 notificationDispatch({ type: 'CLEAR' });
             }, 2000);
-        }
+        },
+    });
+
+    const result = useQuery({
+        queryKey: ['blogs'],
+        queryFn: blogService.getAll,
+        retry: false,
+        refetchOnWindowFocus: false,
+    });
+
+    if (result.isLoading) {
+        return <div>loading data...</div>;
+    }
+
+    const blogs = result.data;
+
+    const addBlog = blogObject => {
+        blogFormRef.current.toggleVisibility();
+        newBlogMutation.mutate(blogObject);
     };
 
-    const deleteBlog = async blogObject => {
-        try {
-            await blogService.deleteBlog(blogObject.id);
-            setBlogs(blogs.filter(blog => blog.id !== blogObject.id));
-			notificationDispatch({
-                type: 'SET',
-                payload: `Deleted ${blogObject.title} by ${blogObject.author}`,
-            });
-        } catch (exception) {
-            notificationDispatch({
-                type: 'ERROR',
-                payload: `Error deleting blog: ${exception}`,
-            });
-        }
+    const updateBlog = blogObject => {
+        updateBlogMutation.mutate({ id: blogObject.id, newObject: blogObject });
+    };
 
-        setTimeout(() => {
-            notificationDispatch({ type: 'CLEAR' });
-        }, 2000);
+    const deleteBlog = blogObject => {
+		deleteBlogMutation.mutate(blogObject.id);
     };
 
     const handleLogout = event => {
@@ -150,7 +183,7 @@ const App = () => {
             setUsername('');
             setPassword('');
         } catch (exception) {
-			notificationDispatch({
+            notificationDispatch({
                 type: 'ERROR',
                 payload: `Wrong username or password`,
             });
