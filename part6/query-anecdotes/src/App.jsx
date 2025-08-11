@@ -36,7 +36,7 @@ const App = () => {
 		notificationDispatch({ type: 'SET', payload: `voted ${anecdote.content}`})
 
 		setTimeout(() => {
-			notificationDispatch({ type: 'CLEAR' })  // ✅ Correct - function and complete action
+			notificationDispatch({ type: 'CLEAR' })  
 		}, 5000)
 	}
 
