@@ -6,9 +6,38 @@ import Notification from './components/Notification';
 import BlogForm from './components/BlogForm';
 import Togglable from './components/Togglable';
 
+import NotificationContext from './components/NotificationContext';
+
+import { useReducer } from 'react';
+
+const notificationReducer = (state, action) => {
+    switch (action.type) {
+        case 'SET':
+            return {
+                message: action.payload,
+                isError: false,
+            };
+        case 'ERROR':
+            return {
+                message: action.payload,
+                isError: true,
+            };
+        default:
+            return {
+				message: '',
+				isError: false,
+			}
+    }
+};
+
 const App = () => {
-    const initialNotification = { message: '', isError: false };
-    const [notification, setNotification] = useState(initialNotification);
+    const [notification, notificationDispatch] = useReducer(
+        notificationReducer,
+        {
+            message: '',
+            isError: false,
+        }
+    );
 
     const [blogs, setBlogs] = useState([]);
     const [username, setUsername] = useState('');
@@ -37,19 +66,19 @@ const App = () => {
             const returnedBlog = await blogService.create(blogObject);
 
             setBlogs(blogs.concat(returnedBlog));
-            setNotification({
-                message: `A new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
-                isError: false,
+            notificationDispatch({
+                type: 'SET',
+                payload: `A new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
             });
         } catch (exception) {
-            setNotification({
-                message: `Error adding blog: ${exception}`,
-                isError: true,
+            notificationDispatch({
+                type: 'ERROR',
+                payload: `Error adding blog: ${exception}`,
             });
         }
 
         setTimeout(() => {
-            setNotification(initialNotification);
+            notificationDispatch({ type: 'CLEAR' });
         }, 2000);
     };
 
@@ -66,34 +95,33 @@ const App = () => {
                 )
             );
         } catch (exception) {
-            setNotification({
-                message: `Error updating blog: ${exception}`,
-                isError: true,
+            notificationDispatch({
+                type: 'ERROR',
+                payload: `Error updating blog: ${exception}`,
             });
+			setTimeout(() => {
+                notificationDispatch({ type: 'CLEAR' });
+            }, 2000);
         }
-
-        setTimeout(() => {
-            setNotification(initialNotification);
-        }, 2000);
     };
 
     const deleteBlog = async blogObject => {
         try {
             await blogService.deleteBlog(blogObject.id);
             setBlogs(blogs.filter(blog => blog.id !== blogObject.id));
-            setNotification({
-                message: `Deleted ${blogObject.title} by ${blogObject.author}`,
-                isError: false,
+			notificationDispatch({
+                type: 'SET',
+                payload: `Deleted ${blogObject.title} by ${blogObject.author}`,
             });
         } catch (exception) {
-            setNotification({
-                message: `Error deleting blog: ${exception}`,
-                isError: true,
+            notificationDispatch({
+                type: 'ERROR',
+                payload: `Error deleting blog: ${exception}`,
             });
         }
 
         setTimeout(() => {
-            setNotification(initialNotification);
+            notificationDispatch({ type: 'CLEAR' });
         }, 2000);
     };
 
@@ -122,84 +150,87 @@ const App = () => {
             setUsername('');
             setPassword('');
         } catch (exception) {
-            setNotification({
-                message: 'Wrong username or password',
-                isError: true,
+			notificationDispatch({
+                type: 'ERROR',
+                payload: `Wrong username or password`,
             });
             setTimeout(() => {
-                setNotification(initialNotification);
+                notificationDispatch({ type: 'CLEAR' });
             }, 2000);
         }
     };
 
-    if (user === null) {
-        return (
-            <div>
-                <h2>Log in to application</h2>
-                <Notification
-                    message={notification.message}
-                    isError={notification.isError}
-                />
-                <form onSubmit={handleLogin}>
-                    <div>
-                        username
-                        <input
-                            id="username"
-                            type="text"
-                            value={username}
-                            name="Username"
-                            onChange={({ target }) => setUsername(target.value)}
-                        />
-                    </div>
-                    <div>
-                        password
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            name="Password"
-                            onChange={({ target }) => setPassword(target.value)}
-                        />
-                    </div>
-                    <button id="login-button" type="submit">
-                        login
-                    </button>
-                </form>
-            </div>
-        );
-    }
-
     return (
-        <div>
-            <div>
-                <h2>blogs</h2>
-                <Notification
-                    message={notification.message}
-                    isError={notification.isError}
-                />
-                <span>{user.username} logged in</span>
-                <button onClick={handleLogout}>logout</button>
-            </div>
+        <NotificationContext.Provider
+            value={[notification, notificationDispatch]}
+        >
+            {user === null ? (
+                <div>
+                    <h2>Log in to application</h2>
+                    <Notification />
+                    <form onSubmit={handleLogin}>
+                        <div>
+                            username
+                            <input
+                                id="username"
+                                type="text"
+                                value={username}
+                                name="Username"
+                                onChange={({ target }) =>
+                                    setUsername(target.value)
+                                }
+                            />
+                        </div>
+                        <div>
+                            password
+                            <input
+                                id="password"
+                                type="password"
+                                value={password}
+                                name="Password"
+                                onChange={({ target }) =>
+                                    setPassword(target.value)
+                                }
+                            />
+                        </div>
+                        <button id="login-button" type="submit">
+                            login
+                        </button>
+                    </form>
+                </div>
+            ) : (
+                <div>
+                    <div>
+                        <h2>blogs</h2>
+                        <Notification />
+                        <span>{user.username} logged in</span>
+                        <button onClick={handleLogout}>logout</button>
+                    </div>
 
-            <div>
-                <br />
-                <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-                    <BlogForm addBlog={addBlog} />
-                </Togglable>
+                    <div>
+                        <br />
+                        <Togglable
+                            buttonLabel="create new blog"
+                            ref={blogFormRef}
+                        >
+                            <BlogForm addBlog={addBlog} />
+                        </Togglable>
 
-                {blogs
-                    .sort((a, b) => b.likes - a.likes)
-                    .map(blog => (
-                        <Blog
-                            key={blog.id}
-                            blog={blog}
-                            updateBlog={updateBlog}
-                            deleteBlog={deleteBlog}
-                            user={user}
-                        />
-                    ))}
-            </div>
-        </div>
+                        {blogs
+                            .sort((a, b) => b.likes - a.likes)
+                            .map(blog => (
+                                <Blog
+                                    key={blog.id}
+                                    blog={blog}
+                                    updateBlog={updateBlog}
+                                    deleteBlog={deleteBlog}
+                                    user={user}
+                                />
+                            ))}
+                    </div>
+                </div>
+            )}
+        </NotificationContext.Provider>
     );
 };
 

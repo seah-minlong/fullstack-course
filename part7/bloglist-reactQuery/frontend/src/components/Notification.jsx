@@ -1,21 +1,28 @@
-const Notification = ({ message, isError }) => {
-  if (!message) return null;
+import { useContext } from 'react';
+import NotificationContext from './NotificationContext';
 
-  const notificationStyle = {
-    color: isError ? "red" : "green",
-    background: "lightgrey",
-    fontSize: "20px",
-    borderStyle: "solid",
-    borderRadius: "5px",
-    padding: "10px",
-    marginBottom: "10px",
-  };
+const Notification = () => {
+	const [notification] = useContext(NotificationContext);
 
-  return (
-    <div className="notification" style={notificationStyle}>
-      {message}
-    </div>
-  );
+	if (!notification.message) {
+		return null
+	}
+
+    const notificationStyle = {
+        color: notification.isError ? 'red' : 'green',
+        background: 'lightgrey',
+        fontSize: '20px',
+        borderStyle: 'solid',
+        borderRadius: '5px',
+        padding: '10px',
+        marginBottom: '10px',
+    };
+
+    return (
+        <div className="notification" style={notificationStyle}>
+            {notification.message}
+        </div>
+    );
 };
 
 export default Notification;
