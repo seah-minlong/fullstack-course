@@ -6,9 +6,11 @@ import { setError } from '../reducers/notificationReducer';
 import { setUser } from '../reducers/userReducer';
 
 import Notification from '../components/Notification';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
     const dispatch = useDispatch();
+	const navigate = useNavigate();
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -30,9 +32,10 @@ const LoginForm = () => {
             dispatch(setUser(user));
             setUsername('');
             setPassword('');
+			navigate('/');
         } catch (exception) {
             dispatch(setError(`Wrong username or password`));
-			console.log(exception.message)
+            console.log(exception.message);
         }
     };
 

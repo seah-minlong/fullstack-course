@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import Togglable from '../components/Togglable';
-import BlogForm from '../components/BlogForm';
+import Togglable from './Togglable';
+import BlogForm from './BlogForm';
 import { useBlogs } from '../hooks/useBlogs';
 
 const CreateBlog = () => {
