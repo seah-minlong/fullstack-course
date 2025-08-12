@@ -87,4 +87,26 @@ bloglistRouter.put("/:id", async (request, response, next) => {
 	}
 });
 
+bloglistRouter.post("/:id/comments", async (request, response, next) => {
+	try {
+		const { comment } = request.body;
+
+		const blog = await Blog.findById(request.params.id).populate("user", {
+			username: 1, // 1 means include this field
+			name: 1,
+		});
+
+		if (blog) {
+			blog.comments = [...blog.comments, comment]
+
+			const result = await blog.save();
+			response.json(result);
+		} else {
+			response.status(404).end();
+		}
+	} catch (exception) {
+		next(exception);
+	}
+});
+
 module.exports = bloglistRouter;

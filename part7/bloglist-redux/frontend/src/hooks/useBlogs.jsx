@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { setNotification, setError } from '../reducers/notificationReducer';
-import { changeBlog, delBlog, createBlog } from '../reducers/blogReducer';
+import { changeBlog, delBlog, createBlog, updateBlogComment } from '../reducers/blogReducer';
 
 export const useBlogs = () => {
     const dispatch = useDispatch();
@@ -41,5 +41,18 @@ export const useBlogs = () => {
         }
     };
 
-    return { blogs, user, updateBlog, deleteBlog, addBlog };
+	const updateComment = async (id, comment) => {
+        try {
+            dispatch(updateBlogComment(id, comment));
+            dispatch(
+                setNotification(
+                    `Added Comment`
+                )
+            );
+        } catch (exception) {
+            dispatch(setError(`Error adding comment: ${exception.message}`));
+        }
+    };
+
+    return { blogs, user, updateBlog, deleteBlog, addBlog, updateComment };
 };

@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { useBlogs } from '../hooks/useBlogs';
 import { useNavigate } from 'react-router-dom';
 import storage from '../services/storage';
 
 const Blog = ({ blog }) => {
-    const { updateBlog, deleteBlog } = useBlogs();
+    const { updateBlog, deleteBlog, updateComment } = useBlogs();
     const navigate = useNavigate();
+	const [comment, setComment] = useState("")
 
     if (!blog) {
         return null;
@@ -12,7 +14,7 @@ const Blog = ({ blog }) => {
 
     const canRemove = blog.user ? blog.user.username === storage.me() : true;
 
-    const handleUpdateBlog = event => {
+    const handleUpvote = event => {
         event.preventDefault();
         updateBlog({
             ...blog,
@@ -33,6 +35,12 @@ const Blog = ({ blog }) => {
         }
     };
 
+	const handleComment = (event) => {
+		event.preventDefault()
+		updateComment(blog.id, comment)
+		setComment('')
+	}
+
     return (
         <div className="blog">
             <h2>
@@ -42,11 +50,26 @@ const Blog = ({ blog }) => {
             <div>{blog.url}</div>
             <div id="likes">
                 likes {blog.likes}
-                <button onClick={handleUpdateBlog}>like</button>
+                <button onClick={handleUpvote}>like</button>
             </div>
             <div>{blog.user.username}</div>
 
             {canRemove && <button onClick={handleDelete}>remove</button>}
+
+            <h2>comments</h2>
+            <form onSubmit={handleComment}>
+                <input
+                    id="comment"
+                    value={comment}
+                    onChange={event => setComment(event.target.value)}
+                />
+                <button type="submit">add comment</button>
+            </form>
+            <ul>
+				{blog.comments.map((comment, id) => 
+					<li key={id}>{comment}</li>
+				)}
+			</ul>
         </div>
     );
 };
