@@ -9,6 +9,10 @@ import Notification from '../components/Notification';
 import { useNavigate } from 'react-router-dom';
 
 import storage from '../services/storage';
+import {
+    TextField,
+	Button
+} from '@mui/material';
 
 const LoginForm = () => {
     const dispatch = useDispatch();
@@ -44,18 +48,17 @@ const LoginForm = () => {
             <Notification />
             <form onSubmit={handleLogin}>
                 <div>
-                    username
-                    <input
+                    <TextField
+						label='username'
                         id="username"
                         type="text"
                         value={username}
-                        name="Username"
                         onChange={({ target }) => setUsername(target.value)}
                     />
                 </div>
                 <div>
-                    password
-                    <input
+                    <TextField
+						label='password'
                         id="password"
                         type="password"
                         value={password}
@@ -63,9 +66,9 @@ const LoginForm = () => {
                         onChange={({ target }) => setPassword(target.value)}
                     />
                 </div>
-                <button id="login-button" type="submit">
+                <Button id="login-button" variant='contained' color='primary' type='submit'>
                     login
-                </button>
+                </Button>
             </form>
         </div>
     );

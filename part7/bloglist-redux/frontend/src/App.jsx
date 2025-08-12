@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Routes, Route, useMatch, useNavigate, Link } from 'react-router-dom';
+import { Routes, Route, useMatch, useNavigate, Link, Navigate } from 'react-router-dom';
+import { Container } from '@mui/material';
 
 import { initialiseBlogs } from './reducers/blogReducer';
 import { setUser, removeUser } from './reducers/userReducer';
@@ -15,6 +16,8 @@ import DisplayBlog from './sections/DisplayBlog';
 import UserInfo from './sections/UserInfo';
 import Blog from './sections/Blog';
 
+import { AppBar, Toolbar, Button } from '@mui/material'
+
 const NavBar = () => {
     const user = useSelector(state => state.user);
     const dispatch = useDispatch();
@@ -27,43 +30,31 @@ const NavBar = () => {
         navigate('/login');
     };
 
-    const navStyle = {
-        padding: '10px',
-        backgroundColor: '#f0f0f0',
-        borderBottom: '1px solid #ddd',
-    };
-
-    const linkStyle = {
-        marginRight: '10px',
-        textDecoration: 'underline',
-        color: '#0066cc',
-    };
-
     if (!user) {
         return null;
     }
 
-    return (
-        <div style={navStyle}>
-            <Link to="/" style={linkStyle}>
-                blogs
-            </Link>
-            <Link to="/users" style={linkStyle}>
-                users
-            </Link>
-            <span style={{ marginLeft: '20px' }}>
-                {user.username} logged in
-                <button onClick={handleLogout} style={{ marginLeft: '10px' }}>
+	return (
+        <AppBar position="static">
+            <Toolbar>
+                <Button color="inherit" component={Link} to="/">
+                    blogs
+                </Button>
+                <Button color="inherit" component={Link} to="/users">
+                    users
+                </Button>
+                <em>{user.username} logged in</em>
+                <Button color="inherit" onClick={handleLogout}>
                     logout
-                </button>
-            </span>
-        </div>
+                </Button>
+            </Toolbar>
+        </AppBar>
     );
 };
 
 const App = () => {
     const dispatch = useDispatch();
-
+	
     const user = useSelector(state => state.user);
     const users = useSelector(state => state.users);
     const blogs = useSelector(state => state.blogs);
@@ -91,15 +82,17 @@ const App = () => {
 
     if (!user) {
         return (
-            <Routes>
-                <Route path="/login" element={<LoginForm />} />
-                <Route path="*" element={<LoginForm />} />
-            </Routes>
+            <Container>
+                <Routes>
+                    <Route path="/login" element={<LoginForm />} />
+                    <Route path="*" element={<LoginForm />} />
+                </Routes>
+            </Container>
         );
     }
 
     return (
-        <div>
+        <Container>
             <NavBar />
 
             <h2>blog app</h2>
@@ -112,8 +105,9 @@ const App = () => {
                 <Route path="/" element={<DisplayBlog />} />
                 <Route path="/blogs" element={<DisplayBlog />} />
                 <Route path="/blogs/:id" element={<Blog blog={blog} />} />
+                <Route path="/login" element={<Navigate to="/" replace />} />
             </Routes>
-        </div>
+        </Container>
     );
 };
 

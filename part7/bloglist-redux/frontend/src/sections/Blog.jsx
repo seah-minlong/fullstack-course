@@ -3,10 +3,12 @@ import { useBlogs } from '../hooks/useBlogs';
 import { useNavigate } from 'react-router-dom';
 import storage from '../services/storage';
 
+import { Button, Card, CardActions, CardContent } from '@mui/material';
+
 const Blog = ({ blog }) => {
     const { updateBlog, deleteBlog, updateComment } = useBlogs();
     const navigate = useNavigate();
-	const [comment, setComment] = useState("")
+    const [comment, setComment] = useState('');
 
     if (!blog) {
         return null;
@@ -35,26 +37,46 @@ const Blog = ({ blog }) => {
         }
     };
 
-	const handleComment = (event) => {
-		event.preventDefault()
-		updateComment(blog.id, comment)
-		setComment('')
-	}
+    const handleComment = event => {
+        event.preventDefault();
+        updateComment(blog.id, comment);
+        setComment('');
+    };
 
     return (
-        <div className="blog">
-            <h2>
-                {blog.title} {blog.author}
-            </h2>
+        <div>
+            <Card className="blog" variant="outlined">
+                <CardContent>
+                    <h2>
+                        {blog.title} {blog.author}
+                    </h2>
 
-            <div>{blog.url}</div>
-            <div id="likes">
-                likes {blog.likes}
-                <button onClick={handleUpvote}>like</button>
-            </div>
-            <div>{blog.user.username}</div>
+                    <div>{blog.url}</div>
+                    <div id="likes">
+                        likes {blog.likes}
+                    </div>
+                    <div>{blog.user.username}</div>
 
-            {canRemove && <button onClick={handleDelete}>remove</button>}
+                    <CardActions>
+                        <Button
+                            variant="contained"
+                            color="sucess"
+                            onClick={handleUpvote}
+                        >
+                            like
+                        </Button>
+                        {canRemove && (
+                            <Button
+                                variant="contained"
+                                color="warning"
+                                onClick={handleDelete}
+                            >
+                                remove
+                            </Button>
+                        )}
+                    </CardActions>
+                </CardContent>
+            </Card>
 
             <h2>comments</h2>
             <form onSubmit={handleComment}>
@@ -66,10 +88,10 @@ const Blog = ({ blog }) => {
                 <button type="submit">add comment</button>
             </form>
             <ul>
-				{blog.comments.map((comment, id) => 
-					<li key={id}>{comment}</li>
-				)}
-			</ul>
+                {blog.comments.map((comment, id) => (
+                    <li key={id}>{comment}</li>
+                ))}
+            </ul>
         </div>
     );
 };
