@@ -1,0 +1,16 @@
+post http://localhost:3001/api/login
+Content-Type: application/json
+
+{
+	"username": "root",
+	"password": "salainen"
+}
+
+###
+post http://localhost:3001/api/login
+Content-Type: application/json
+
+{
+	"username": "NoBlogs",
+	"password": "HelloWorld"
+}
