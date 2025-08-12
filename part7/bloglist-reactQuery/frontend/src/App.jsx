@@ -10,6 +10,7 @@ import Togglable from './components/Togglable';
 
 import Notification from './components/Notification';
 import NotificationContext from './components/NotificationContext';
+import UserContext from './components/UserContext'
 
 import { useReducer } from 'react';
 
@@ -35,6 +36,17 @@ const notificationReducer = (state, action) => {
     }
 };
 
+const userReducer = (state, action) => {
+    switch (action.type) {
+        case 'LOGIN':
+            return action.payload;
+        case 'LOGOUT':
+            return null;
+        default:
+            return null;
+    }
+};
+
 const App = () => {
     const [notification, notificationDispatch] = useReducer(
         notificationReducer,
@@ -43,7 +55,7 @@ const App = () => {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [user, setUser] = useState(null);
+	const [user, userDispatch] = useReducer(userReducer, null)
 
     const blogFormRef = useRef();
 
@@ -51,7 +63,7 @@ const App = () => {
         const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser');
         if (loggedUserJSON) {
             const user = JSON.parse(loggedUserJSON);
-            setUser(user);
+            userDispatch({ type: 'LOGIN', payload: user })
             blogService.setToken(user.token);
         }
     }, []);
@@ -126,24 +138,11 @@ const App = () => {
                 type: 'ERROR',
                 payload: `Error deleting blog: ${exception.message}`,
             });
-			setTimeout(() => {
+            setTimeout(() => {
                 notificationDispatch({ type: 'CLEAR' });
             }, 2000);
         },
     });
-
-    const result = useQuery({
-        queryKey: ['blogs'],
-        queryFn: blogService.getAll,
-        retry: false,
-        refetchOnWindowFocus: false,
-    });
-
-    if (result.isLoading) {
-        return <div>loading data...</div>;
-    }
-
-    const blogs = result.data;
 
     const addBlog = blogObject => {
         blogFormRef.current.toggleVisibility();
@@ -155,14 +154,27 @@ const App = () => {
     };
 
     const deleteBlog = blogObject => {
-		deleteBlogMutation.mutate(blogObject.id);
+        deleteBlogMutation.mutate(blogObject.id);
     };
+
+    const blogQuery = useQuery({
+        queryKey: ['blogs'],
+        queryFn: blogService.getAll,
+        retry: false,
+        refetchOnWindowFocus: false,
+    });
+
+    if (blogQuery.isLoading) {
+        return <div>loading data...</div>;
+    }
+
+    const blogs = blogQuery.data;
 
     const handleLogout = event => {
         event.preventDefault();
 
         window.localStorage.removeItem('loggedBlogappUser');
-        setUser(null);
+        userDispatch({ type: 'LOGOUT' });
     };
 
     const handleLogin = async event => {
@@ -179,7 +191,7 @@ const App = () => {
                 JSON.stringify(user)
             );
             blogService.setToken(user.token);
-            setUser(user);
+            userDispatch({ type: 'LOGIN', payload: user });
             setUsername('');
             setPassword('');
         } catch (exception) {
@@ -194,76 +206,78 @@ const App = () => {
     };
 
     return (
-        <NotificationContext.Provider
-            value={[notification, notificationDispatch]}
-        >
-            {user === null ? (
-                <div>
-                    <h2>Log in to application</h2>
-                    <Notification />
-                    <form onSubmit={handleLogin}>
-                        <div>
-                            username
-                            <input
-                                id="username"
-                                type="text"
-                                value={username}
-                                name="Username"
-                                onChange={({ target }) =>
-                                    setUsername(target.value)
-                                }
-                            />
-                        </div>
-                        <div>
-                            password
-                            <input
-                                id="password"
-                                type="password"
-                                value={password}
-                                name="Password"
-                                onChange={({ target }) =>
-                                    setPassword(target.value)
-                                }
-                            />
-                        </div>
-                        <button id="login-button" type="submit">
-                            login
-                        </button>
-                    </form>
-                </div>
-            ) : (
-                <div>
+        <UserContext.Provider value={[user, userDispatch]}>
+            <NotificationContext.Provider
+                value={[notification, notificationDispatch]}
+            >
+                {user === null ? (
                     <div>
-                        <h2>blogs</h2>
+                        <h2>Log in to application</h2>
                         <Notification />
-                        <span>{user.username} logged in</span>
-                        <button onClick={handleLogout}>logout</button>
-                    </div>
-
-                    <div>
-                        <br />
-                        <Togglable
-                            buttonLabel="create new blog"
-                            ref={blogFormRef}
-                        >
-                            <BlogForm addBlog={addBlog} />
-                        </Togglable>
-
-                        {blogs
-                            .sort((a, b) => b.likes - a.likes)
-                            .map(blog => (
-                                <Blog
-                                    key={blog.id}
-                                    blog={blog}
-                                    updateBlog={updateBlog}
-                                    deleteBlog={deleteBlog}
-                                    user={user}
+                        <form onSubmit={handleLogin}>
+                            <div>
+                                username
+                                <input
+                                    id="username"
+                                    type="text"
+                                    value={username}
+                                    name="Username"
+                                    onChange={({ target }) =>
+                                        setUsername(target.value)
+                                    }
                                 />
-                            ))}
+                            </div>
+                            <div>
+                                password
+                                <input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    name="Password"
+                                    onChange={({ target }) =>
+                                        setPassword(target.value)
+                                    }
+                                />
+                            </div>
+                            <button id="login-button" type="submit">
+                                login
+                            </button>
+                        </form>
                     </div>
-                </div>
-            )}
-        </NotificationContext.Provider>
+                ) : (
+                    <div>
+                        <div>
+                            <h2>blogs</h2>
+                            <Notification />
+                            <span>{user.username} logged in</span>
+                            <button onClick={handleLogout}>logout</button>
+                        </div>
+
+                        <div>
+                            <br />
+                            <Togglable
+                                buttonLabel="create new blog"
+                                ref={blogFormRef}
+                            >
+                                <BlogForm addBlog={addBlog} />
+                            </Togglable>
+
+                            {blogs
+                                .sort((a, b) => b.likes - a.likes)
+                                .map(blog => (
+                                    <Blog
+                                        key={blog.id}
+                                        blog={blog}
+                                        updateBlog={updateBlog}
+                                        deleteBlog={deleteBlog}
+                                        user={user}
+                                    />
+                                ))}
+                        </div>
+                    </div>
+                )}
+            </NotificationContext.Provider>
+        </UserContext.Provider>
     );
 };
 
