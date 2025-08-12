@@ -1,33 +1,8 @@
-import { useDispatch, useSelector } from 'react-redux';
 import Blog from '../components/Blog';
-import { setNotification, setError } from '../reducers/notificationReducer';
-import { changeBlog, delBlog } from '../reducers/blogReducer';
+import { useBlogs } from '../hooks/useBlogs';
 
 const DisplayBlog = () => {
-    const dispatch = useDispatch();
-    const blogs = useSelector(state => state.blogs);
-	const user = useSelector(state => state.user);
-	
-    const updateBlog = async blogObject => {
-        try {
-            dispatch(changeBlog(blogObject));
-        } catch (exception) {
-            dispatch(setError(`Error updating blog: ${exception.message}`));
-        }
-    };
-
-    const deleteBlog = async blogObject => {
-        try {
-            dispatch(delBlog(blogObject));
-            dispatch(
-                setNotification(
-                    `Deleted ${blogObject.title} by ${blogObject.author}`
-                )
-            );
-        } catch (exception) {
-            dispatch(setError(`Error deleting blog: ${exception.message}`));
-        }
-    };
+    const { blogs, user, updateBlog, deleteBlog } = useBlogs();
 
     return (
         <div>
