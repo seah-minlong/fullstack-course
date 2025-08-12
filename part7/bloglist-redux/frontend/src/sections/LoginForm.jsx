@@ -8,6 +8,8 @@ import { setUser } from '../reducers/userReducer';
 import Notification from '../components/Notification';
 import { useNavigate } from 'react-router-dom';
 
+import storage from '../services/storage';
+
 const LoginForm = () => {
     const dispatch = useDispatch();
 	const navigate = useNavigate();
@@ -24,10 +26,7 @@ const LoginForm = () => {
                 password,
             });
 
-            window.localStorage.setItem(
-                'loggedBlogappUser',
-                JSON.stringify(user)
-            );
+            storage.saveUser(user)
             blogService.setToken(user.token);
             dispatch(setUser(user));
             setUsername('');

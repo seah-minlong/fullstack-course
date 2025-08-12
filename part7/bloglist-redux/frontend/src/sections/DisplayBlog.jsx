@@ -1,23 +1,17 @@
-import Blog from '../components/Blog';
 import { useBlogs } from '../hooks/useBlogs';
 import CreateBlog from '../components/CreateBlog';
+import BlogRow from '../components/BlogRow';
 
 const DisplayBlog = () => {
-    const { blogs, user, updateBlog, deleteBlog } = useBlogs();
+    const { blogs } = useBlogs();
 
     return (
         <div>
-			<CreateBlog />
+            <CreateBlog />
             {[...blogs]
                 .sort((a, b) => b.likes - a.likes)
                 .map(blog => (
-                    <Blog
-                        key={blog.id}
-                        blog={blog}
-                        updateBlog={updateBlog}
-                        deleteBlog={deleteBlog}
-                        user={user}
-                    />
+                    <BlogRow key={blog.id} blog={blog} />
                 ))}
         </div>
     );
