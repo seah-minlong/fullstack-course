@@ -1,4 +1,4 @@
-import { createContext, useReducer } from 'react';
+import { createContext, useContext, useReducer } from 'react';
 
 const initialNotification = {
     message: '',
@@ -38,5 +38,27 @@ export const NotificationContextProvider = props => {
         </NotificationContext.Provider>
     );
 };
+
+export const useNotify = () => {
+	const temp = useContext(NotificationContext)
+	const dispatch = temp[1]
+	return (msg, isError) => {
+		if (isError) {
+			dispatch({
+                type: 'ERROR',
+                payload: msg,
+            });   
+		} else {
+			dispatch({
+                type: 'SET',
+                payload: msg,
+            }); 
+		}
+
+		setTimeout(() => {
+            dispatch({ type: 'CLEAR' });
+        }, 2000);
+	}
+}
 
 export default NotificationContext;

@@ -12,11 +12,11 @@ import Notification from './components/Notification';
 import UserContext from './context/UserContext';
 
 import { useContext } from 'react';
-import NotificationContext from './context/NotificationContext';
+import { useNotify } from './context/NotificationContext';
 
 const App = () => {
-    const [notification, notificationDispatch] = useContext(NotificationContext);
     const [user, userDispatch] = useContext(UserContext);
+    const notify = useNotify();
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -44,13 +44,7 @@ const App = () => {
             );
         },
         onError: exception => {
-            notificationDispatch({
-                type: 'ERROR',
-                payload: `Error updating blog: ${exception.message}`,
-            });
-            setTimeout(() => {
-                notificationDispatch({ type: 'CLEAR' });
-            }, 2000);
+            notify(`Error updating blog: ${exception.message}`, true);
         },
     });
 
@@ -58,23 +52,13 @@ const App = () => {
         mutationFn: blogService.create,
         onSuccess: returnedBlog => {
             queryClient.invalidateQueries({ queryKey: ['blogs'] });
-
-            notificationDispatch({
-                type: 'SET',
-                payload: `A new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
-            });
-            setTimeout(() => {
-                notificationDispatch({ type: 'CLEAR' });
-            }, 2000);
+            notify(
+                `A new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
+                false
+            );
         },
         onError: exception => {
-            notificationDispatch({
-                type: 'ERROR',
-                payload: `Error adding blog: ${exception.message}`,
-            });
-            setTimeout(() => {
-                notificationDispatch({ type: 'CLEAR' });
-            }, 2000);
+            notify(`Error adding blog: ${exception.message}`, true);
         },
     });
 
@@ -89,22 +73,13 @@ const App = () => {
                 blogs.filter(blog => blog.id !== id)
             );
 
-            notificationDispatch({
-                type: 'SET',
-                payload: `Deleted ${blogObject.title} by ${blogObject.author}`,
-            });
-            setTimeout(() => {
-                notificationDispatch({ type: 'CLEAR' });
-            }, 2000);
+            notify(
+                `Deleted ${blogObject.title} by ${blogObject.author}`,
+                false
+            );
         },
         onError: exception => {
-            notificationDispatch({
-                type: 'ERROR',
-                payload: `Error deleting blog: ${exception.message}`,
-            });
-            setTimeout(() => {
-                notificationDispatch({ type: 'CLEAR' });
-            }, 2000);
+            notify(`Error deleting blog: ${exception.message}`, true);
         },
     });
 
@@ -159,13 +134,7 @@ const App = () => {
             setUsername('');
             setPassword('');
         } catch (exception) {
-            notificationDispatch({
-                type: 'ERROR',
-                payload: `Wrong username or password`,
-            });
-            setTimeout(() => {
-                notificationDispatch({ type: 'CLEAR' });
-            }, 2000);
+            notify(`Wrong username or password`, true);
         }
     };
 
