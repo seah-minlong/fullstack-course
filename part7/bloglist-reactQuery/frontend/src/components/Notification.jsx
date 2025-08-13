@@ -1,12 +1,12 @@
 import { useContext } from 'react';
-import NotificationContext from './NotificationContext';
+import NotificationContext from '../context/NotificationContext';
 
 const Notification = () => {
-	const [notification] = useContext(NotificationContext);
+    const [notification] = useContext(NotificationContext);
 
-	if (!notification.message) {
-		return null
-	}
+    if (!notification.message) {
+        return null;
+    }
 
     const notificationStyle = {
         color: notification.isError ? 'red' : 'green',
